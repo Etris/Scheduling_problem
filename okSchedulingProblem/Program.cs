@@ -21,9 +21,13 @@ namespace okSchedulingProblem
             Console.WriteLine("Enter size of population: ");
             int pop = Convert.ToInt32(Console.ReadLine());
             AcoMaster aco = new AcoMaster();
-            for(int firstPar = 0; firstPar < 10; firstPar++)
+            for (double firstPar = 6.5; firstPar < 10; firstPar += 0.5)
             {
-                aco.Init(num, pop, 4, 0.15);
+                for (double secondPar = 0.1; secondPar < 1; secondPar += 0.1)
+                {
+                    Console.WriteLine(firstPar + "/" + secondPar);
+                    aco.Init(num, pop, firstPar, secondPar);
+                }
             }
             
             Console.ReadLine();

@@ -21,6 +21,7 @@ namespace okSchedulingProblem
         public double[,] arrx2;
         ArrayList topValue = new ArrayList();
         ArrayList topValuesTimes = new ArrayList();
+        public TimeSpan endVar = new TimeSpan(0, 0, 30);
 
         private double Evaporate(double tmp, double param)
         {
@@ -53,10 +54,7 @@ namespace okSchedulingProblem
             int bestScore = 1500;
             MyTimer.Start = DateTime.Now;
             TimeSpan span = new TimeSpan(0, 0, 0);
-            TimeSpan endVar = new TimeSpan(0, 0, 45);
-            TimeSpan firstInterval = new TimeSpan(0, 0, 1);
-            DateTime secondInter = DateTime.Now;
-            TimeSpan perc;
+            //TimeSpan endVar = new TimeSpan(0, 0, 45);
             while (1 == 1)
             {
                 if(( span = DateTime.Now - MyTimer.Start) > endVar ) break;
@@ -67,92 +65,32 @@ namespace okSchedulingProblem
                     {
                         size = size
                     };
-                    if ((span = DateTime.Now - MyTimer.Start) > firstInterval)
+                    gen.TransferWithRoulette(instanceFirst, this);
+                    if (instanceFirst.getInstantionScore() < bestScore)
                     {
-                        perc = (span = DateTime.Now - MyTimer.Start);
-                        double ft = span.Seconds;
-                        double sc = endVar.Seconds + (60 * endVar.Minutes);
-                        //Console.WriteLine(((ft / sc) * 100));
-                        int holder = (int)((ft / sc) * 100);
-                        //Console.WriteLine(holder);
-                        Random rnd = new Random();
-                        int roultette = rnd.Next(0, 100);
-                        if (roultette < holder)
+                        bestScore = instanceFirst.getInstantionScore();
+                        instanceBest = (InstationGenerator)instanceFirst.Clone();
+                        string mods = "";
+                        if (instanceBest.isModified == true)
                         {
-                            iter++;
-                            gen.TransferWithRoulette(instanceFirst, this);
-                            if (instanceFirst.getInstantionScore() <= bestScore)
-                            {
-                                bestScore = instanceFirst.getInstantionScore();
-                                instanceBest = (InstationGenerator)instanceFirst.Clone();
-                                string mods= "";
-                                if (instanceBest.isModified == true)
-                                {
-                                    mods = "MO!";
-                                }
-                                else
-                                {
-                                    mods = "NMO!";
-                                }
-                                //Console.WriteLine(bestScore + " "+ mods);
-                                //instanceFirst.PrintMachines();
-                                topValue.Add(bestScore);
-                                topValuesTimes.Add(string.Format("{0:ss}", (MyTimer.Start - DateTime.Now)));
-                            }
-                            //Console.WriteLine(instanceFirst.getInstantionScore());
-                            //instanceFirst.PrintMachines();
-                            populationHandler.Add(instanceFirst);
+                            mods = "MO!";
                         }
                         else
                         {
-                            gen.TransferData(instanceFirst, this);
-                            if (instanceFirst.getInstantionScore() < bestScore)
-                            {
-                                bestScore = instanceFirst.getInstantionScore();
-                                instanceBest = (InstationGenerator)instanceFirst.Clone();
-                                string mods = "";
-                                if (instanceBest.isModified == true)
-                                {
-                                    mods = "MO!";
-                                }
-                                else
-                                {
-                                    mods = "NMO!";
-                                }
-                                //Console.WriteLine(bestScore + " " + mods);
-                                //instanceFirst.PrintMachines();
-                                topValue.Add(bestScore);
-                                topValuesTimes.Add(string.Format("{0:ss}", (MyTimer.Start - DateTime.Now)));
-                            }
-                            populationHandler.Add(instanceFirst);
+                            mods = "NMO!";
                         }
+                        Console.WriteLine(bestScore + " "+ mods);
+                        //instanceFirst.PrintMachines();
+                        topValue.Add(bestScore);
+                        topValuesTimes.Add(string.Format("{0:ss}", (MyTimer.Start - DateTime.Now)));
                     }
-                    else
-                    {
-                        gen.TransferData(instanceFirst, this);
-                        if (instanceFirst.getInstantionScore() < bestScore)
-                        {
-                            bestScore = instanceFirst.getInstantionScore();
-                            instanceBest = (InstationGenerator)instanceFirst.Clone();
-                            string mods = "";
-                            if (instanceBest.isModified == true)
-                            {
-                                mods = "MO!";
-                            }
-                            else
-                            {
-                                mods = "NMO!";
-                            }
-                            //Console.WriteLine(bestScore + " " + mods);
-                            //instanceFirst.PrintMachines();
-                            topValue.Add(bestScore);
-                            topValuesTimes.Add(string.Format("{0:ss}", (MyTimer.Start - DateTime.Now)));
-                        }
-                        populationHandler.Add(instanceFirst);
-                    }
+
+                    //Console.WriteLine(instanceFirst.getInstantionScore());
+                    //instanceFirst.PrintMachines();
+                    populationHandler.Add(instanceFirst);
                 }
                 //Console.WriteLine("*BEEP* : " + iter);
-                iter = 0;
+                //iter = 0;
                 ArrayList topElements = new ArrayList();
                 for (int s = 0; s < size/10; s++)
                 {

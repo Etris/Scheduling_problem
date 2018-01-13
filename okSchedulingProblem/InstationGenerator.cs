@@ -140,7 +140,6 @@ namespace okSchedulingProblem
                 FillSecondMachine(secondMachineTasks, secondMachineTempMaintance, secondMachine, firstMachineTasks, false, 0, ACO);
             }else if(roulette == true)
             {
-                isModified = true;
                 FillFirstMachine(firstMachineTasks, firstMachineTempMaintance, firstMachine, true, 0, ACO);
                 FillSecondMachine(secondMachineTasks, secondMachineTempMaintance, secondMachine, firstMachineTasks, true, 0, ACO);
             }
@@ -200,62 +199,43 @@ namespace okSchedulingProblem
         {
             if (usingTable == true)
             {
-                Entity element = (Entity)firstMachineTasks[0];
-                int a;
-                if (firstMachine.GetLastEndTime() + element.GetStartTime() + element.GetTime() < getTimeOfNextMaintance(firstMachineTempMaintance) && element.GetReadyTime() > firstMachine.GetLastEndTime())
+                Random rnd = new Random();
+                while (firstMachineTasks.Count > 0)
                 {
-                    element.SetStartTime(firstMachine.GetLastEndTime() + 1);
-                    element.SetEndTime(firstMachine.GetLastEndTime() + element.GetTime() + 1);
-                    firstMachine.AddElement(element);
-                    firstMachineTasks.Remove(element);
-                }
-                else if (firstMachineTempMaintance.Count == 0)
-                {
-                    element.SetStartTime(firstMachine.GetLastEndTime() + 1);
-                    element.SetEndTime(firstMachine.GetLastEndTime() + element.GetTime() + 1);
-                    firstMachine.AddElement(element);
-                    firstMachineTasks.Remove(element);
-                }
-                else
-                {
-                    if (getTimeOfNextMaintance(firstMachineTempMaintance) > 0)
+                    TimeSpan span = new TimeSpan(0, 0, 0);
+                    TimeSpan perc = (span = DateTime.Now - MyTimer.Start);
+                    double ft = span.Seconds;
+                    double sc = ACO.endVar.Seconds + (60 * ACO.endVar.Minutes);
+                    int holder = (int)((ft / sc) * 100);
+                    int roultette = rnd.Next(0, 100);
+                    int pos = 0;
+                    if (roultette < holder - 5)
                     {
-                        Entity tms = new Entity(2, (getTimeOfNextMaintance(firstMachineTempMaintance) - firstMachine.GetLastEndTime() - 2), 0, 0, 0, 0, 0);
-                        tms.SetStartTime(firstMachine.GetLastEndTime() + 1);
-                        tms.SetEndTime(getTimeOfNextMaintance(firstMachineTempMaintance) - 1);
-                        tms.SetTime(tms.GetEndTime() - tms.GetStartTime());
-                        firstMachine.AddElement(tms);
-                        if (firstMachineTempMaintance.Count > 0)
-                        {
-                            Entity tpc = (Entity)firstMachineTempMaintance[0];
-                            firstMachine.AddElement(tpc);
-                            firstMachineTempMaintance.Remove(tpc);
-                        }
-                    }
-                }
-                int pos = 0;
-                while (firstMachineTasks.Count > 0) {
-                    a = firstMachine.GetLastElementID();
-                    int take = TakeBest(ACO.arr, a);
-                    if (IsPossibleToTakeFromList(firstMachineTasks, take) == true)
-                    {
-                        pos = GetPositionAtList(take, firstMachineTasks);
-                    }
-                    else
-                    {
-                        take = WhichElementIShouldTake(ACO.arr, a);
-                        if(IsPossibleToTakeFromList(firstMachineTasks, take) == true)
+                        isModified = true;
+                        int a = firstMachine.GetLastElementID();
+                        int take = WhichElementIShouldTake(ACO.arr, a);
+                        if (IsPossibleToTakeFromList(firstMachineTasks, take) == true)
                         {
                             pos = GetPositionAtList(take, firstMachineTasks);
                         }
                         else
                         {
-                            pos = 0;
+                            take = WhichElementIShouldTake(ACO.arr, a);
+                            if (IsPossibleToTakeFromList(firstMachineTasks, take) == true)
+                            {
+                                pos = GetPositionAtList(take, firstMachineTasks);
+                            }
+                            else
+                            {
+                                pos = 0;
+                            }
                         }
                     }
-                    Random rnd = new Random();
-                    //if (rnd.Next(0, 10) > 6) pos = 0;
-                    element = (Entity)firstMachineTasks[pos];
+                    else
+                    {
+                        pos = 0;
+                    }
+                    Entity element = (Entity)firstMachineTasks[pos];
                     if (firstMachine.GetLastEndTime() + element.GetStartTime() + element.GetTime() < getTimeOfNextMaintance(firstMachineTempMaintance) && element.GetReadyTime() > firstMachine.GetLastEndTime())
                     {
                         element.SetStartTime(firstMachine.GetLastEndTime() + 1);
@@ -334,63 +314,42 @@ namespace okSchedulingProblem
         {
             if (usingTable == true)
             {
-                Entity element = (Entity)secondMachineTasks[0];
-                int a;
-                if (secondMachine.GetLastEndTime() + element.GetStartTime() + element.GetTime() < getTimeOfNextMaintance(secondMachineTempMaintance) && GetEndTimeOfPair(firstMachineTasks, element.GetOperationID()) > secondMachine.GetLastEndTime())
-                {
-                    element.SetStartTime(secondMachine.GetLastEndTime() + 1);
-                    element.SetEndTime(secondMachine.GetLastEndTime() + element.GetTime() + 1);
-                    secondMachine.AddElement(element);
-                    secondMachineTasks.Remove(element);
-                }
-                else if (secondMachineTempMaintance.Count == 0)
-                {
-                    element.SetStartTime(secondMachine.GetLastEndTime() + 1);
-                    element.SetEndTime(secondMachine.GetLastEndTime() + element.GetTime() + 1);
-                    secondMachine.AddElement(element);
-                    secondMachineTasks.Remove(element);
-                }
-                else
-                {
-                    if (getTimeOfNextMaintance(secondMachineTempMaintance) > 0)
-                    {
-                        Entity tms = new Entity(2, (getTimeOfNextMaintance(secondMachineTempMaintance) - secondMachine.GetLastEndTime() - 2), 0, 0, 0, 0, 0);
-                        tms.SetStartTime(secondMachine.GetLastEndTime() + 1);
-                        tms.SetEndTime(getTimeOfNextMaintance(secondMachineTempMaintance) - 1);
-                        tms.SetTime(tms.GetEndTime() - tms.GetStartTime());
-                        secondMachine.AddElement(tms);
-                        if (secondMachineTempMaintance.Count > 0)
-                        {
-                            Entity tpc = (Entity)secondMachineTempMaintance[0];
-                            secondMachine.AddElement(tpc);
-                            secondMachineTempMaintance.Remove(tpc);
-                        }
-                    }
-                }
-                int pos = 0;
+                Random rnd = new Random();
                 while (secondMachineTasks.Count > 0)
                 {
-                    a = secondMachine.GetLastElementID();
-                    int take = WhichElementIShouldTake(ACO.arrx2, a);
-                    if (IsPossibleToTakeFromList(secondMachineTasks, take) == true)
+                    TimeSpan span = new TimeSpan(0, 0, 0);
+                    TimeSpan perc = (span = DateTime.Now - MyTimer.Start);
+                    double ft = span.Seconds;
+                    double sc = ACO.endVar.Seconds + (60 * ACO.endVar.Minutes);
+                    int holder = (int)((ft / sc) * 100);
+                    int roultette = rnd.Next(0, 100);
+                    int pos = 0;
+                    if (roultette < holder)
                     {
-                        pos = GetPositionAtList(take, secondMachineTasks);
-                    }
-                    else
-                    {
-                        take = WhichElementIShouldTake(ACO.arrx2, a);
+                        int a = secondMachine.GetLastElementID();
+                        int take = WhichElementIShouldTake(ACO.arrx2, a);
                         if (IsPossibleToTakeFromList(secondMachineTasks, take) == true)
                         {
                             pos = GetPositionAtList(take, secondMachineTasks);
                         }
                         else
                         {
-                            pos = 0;
+                            take = WhichElementIShouldTake(ACO.arrx2, a);
+                            if (IsPossibleToTakeFromList(secondMachineTasks, take) == true)
+                            {
+                                pos = GetPositionAtList(take, secondMachineTasks);
+                            }
+                            else
+                            {
+                                pos = 0;
+                            }
                         }
                     }
-                    Random rnd = new Random();
-                    //if (rnd.Next(0, 10) > 5) pos = 0;
-                    element = (Entity)secondMachineTasks[pos];
+                    else
+                    {
+                        pos = 0;
+                    }
+                    Entity element = (Entity)secondMachineTasks[pos];
                     if (secondMachine.GetLastEndTime() + element.GetStartTime() + element.GetTime() < getTimeOfNextMaintance(secondMachineTempMaintance) && GetEndTimeOfPair(firstMachineTasks, element.GetOperationID()) > secondMachine.GetLastEndTime())
                     {
                         element.SetStartTime(secondMachine.GetLastEndTime() + 1);
@@ -422,7 +381,6 @@ namespace okSchedulingProblem
                             }
                         }
                     }
-
                 }
                 }
             else
