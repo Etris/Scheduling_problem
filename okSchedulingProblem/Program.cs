@@ -29,7 +29,7 @@ namespace okSchedulingProblem
                 aco.setID = (setID + "." + i.ToString());
                 aco.SetData(num);
                 for (int c = 0; c< 10; c++) {
-                    aco.Init(num, pop, 7.0, 0.15);
+                    aco.Init(num, pop, 6.5, 0.25);
                     break;
                 }
             }

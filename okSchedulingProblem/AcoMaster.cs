@@ -24,7 +24,7 @@ namespace okSchedulingProblem
         ArrayList populationHandler;
         InstationGenerator instanceBest, instanceFirst;
         RandomGenerator gen;
-        public TimeSpan endVar = new TimeSpan(0, 0, 35);
+        public TimeSpan endVar = new TimeSpan(0, 0, 120);
         public string setID;
         ArrayList nonGMO, GMO;
 
@@ -49,8 +49,8 @@ namespace okSchedulingProblem
             instanceFirst = new InstationGenerator();
             instanceBest = new InstationGenerator();
             gen.SetNumberOfElements(size);
-            gen.GenereteMaintances();
             gen.GenereteOperations();
+            gen.GenereteMaintances();
             gen.SaveInstantion(setID);
             arr = new double[size, size];
             arrx2 = new double[size, size];
@@ -66,26 +66,12 @@ namespace okSchedulingProblem
 
         public void Init(int size, int population, double smoothParam, double evarParam)
         {
-            /**
-            topValue = new ArrayList();
-            topValuesTimes = new ArrayList();
-            ArrayList populationHandler = new ArrayList();
-            RandomGenerator gen = new RandomGenerator();
-            InstationGenerator instanceFirst = new InstationGenerator();
-            InstationGenerator instanceBest = new InstationGenerator();
-            gen.SetNumberOfElements(size);
-            gen.GenereteMaintances();
-            gen.GenereteOperations();
-            gen.SaveInstantion(setID);
-            arr = new double[size, size];
-            arrx2 = new double[size, size];
-            **/
             topValue.Clear();
             topValuesTimes.Clear();
             nonGMO = new ArrayList();
             GMO = new ArrayList();
             //int iter = 0;
-            int bestScore = 25000;
+            int bestScore = Int32.MaxValue;
             MyTimer.Start = DateTime.Now;
             TimeSpan span = new TimeSpan(0, 0, 0);
             //TimeSpan endVar = new TimeSpan(0, 0, 45);

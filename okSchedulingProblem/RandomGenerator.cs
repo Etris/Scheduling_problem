@@ -13,6 +13,7 @@ namespace okSchedulingProblem
         protected int size;
         protected ArrayList elements = new ArrayList();
         protected ArrayList maintances = new ArrayList();
+        private int maxLen;
 
         public void SetNumberOfElements(int tmp)
         {
@@ -25,11 +26,15 @@ namespace okSchedulingProblem
             int type = 1;
             int tmpMachine = 0;
             for (int x = 0; x < 2; x++)
-            {
+            {   
                 for (int i = 0; i < (size / 5); i++)
                 {
+                    int startTime = rnd.Next(i*(maxLen / (size/5))+1 , (i*(maxLen / (size/5)) + (maxLen / (size/5))));
+                    int par = 10;
+                    if ((i * (maxLen / (size / 5)) + (maxLen / (size / 5))) - startTime < 10){
+                        par = ((i * (maxLen / (size / 5)) + (maxLen / (size / 5)))) - startTime;
+                    }
                     int tmpTime = rnd.Next(1, 10);
-                    int startTime = rnd.Next(i*size+1, (i*size + size));
                     Entity tmpMaintance = new Entity(type, tmpTime, i, tmpMachine, 0, 0, 0);
                     tmpMaintance.SetStartTime(startTime);
                     tmpMaintance.SetEndTime(startTime + tmpTime);
@@ -53,6 +58,7 @@ namespace okSchedulingProblem
                 elements.Add(tmpOperation);
                 summaricTimeFirstMachine += tmpTime;
             }
+            this.maxLen = summaricTimeFirstMachine;
             for(int x = 0; x < size; x++)
             {
                 int tmpTime = rnd.Next(1, 5);
