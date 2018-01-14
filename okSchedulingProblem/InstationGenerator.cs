@@ -14,7 +14,7 @@ namespace okSchedulingProblem
         ArrayList secondMachineTasks = new ArrayList();
         Machine firstMachine;
         Machine secondMachine;
-        public int size = 50;
+        public int size;
 
         private int getTimeOfNextMaintance(ArrayList tmp)
         {
@@ -186,7 +186,7 @@ namespace okSchedulingProblem
             int value = 0;
             foreach (Entity element in firstMachineTasks)
             {
-                if (element.GetOperationID() == pair)
+                if (element.GetOperationID() == pair && element.GetTypeOfEntity() == 0)
                 {
                     value = element.GetEndTime();
                     break;
@@ -202,6 +202,7 @@ namespace okSchedulingProblem
                 Random rnd = new Random();
                 while (firstMachineTasks.Count > 0)
                 {
+                    //firstMachine.PrintMachine();
                     TimeSpan span = new TimeSpan(0, 0, 0);
                     TimeSpan perc = (span = DateTime.Now - MyTimer.Start);
                     double ft = span.Seconds;
@@ -236,34 +237,68 @@ namespace okSchedulingProblem
                         pos = 0;
                     }
                     Entity element = (Entity)firstMachineTasks[pos];
-                    if (firstMachine.GetLastEndTime() + element.GetStartTime() + element.GetTime() < getTimeOfNextMaintance(firstMachineTempMaintance) && element.GetReadyTime() > firstMachine.GetLastEndTime())
+                    bool added = false;
+                    while (!added)
                     {
-                        element.SetStartTime(firstMachine.GetLastEndTime() + 1);
-                        element.SetEndTime(firstMachine.GetLastEndTime() + element.GetTime() + 1);
-                        firstMachine.AddElement(element);
-                        firstMachineTasks.Remove(element);
-                    }
-                    else if (firstMachineTempMaintance.Count == 0)
-                    {
-                        element.SetStartTime(firstMachine.GetLastEndTime() + 1);
-                        element.SetEndTime(firstMachine.GetLastEndTime() + element.GetTime() + 1);
-                        firstMachine.AddElement(element);
-                        firstMachineTasks.Remove(element);
-                    }
-                    else
-                    {
-                        if (getTimeOfNextMaintance(firstMachineTempMaintance) > 0)
+                        if(element.GetReadyTime() < firstMachine.GetLastEndTime())
                         {
-                            Entity tms = new Entity(2, (getTimeOfNextMaintance(firstMachineTempMaintance) - firstMachine.GetLastEndTime() - 2), 0, 0, 0, 0, 0);
-                            tms.SetStartTime(firstMachine.GetLastEndTime() + 1);
-                            tms.SetEndTime(getTimeOfNextMaintance(firstMachineTempMaintance) - 1);
-                            tms.SetTime(tms.GetEndTime() - tms.GetStartTime());
-                            firstMachine.AddElement(tms);
-                            if (firstMachineTempMaintance.Count > 0)
+                            if(firstMachineTempMaintance.Count != 0 && getTimeOfNextMaintance(firstMachineTempMaintance) <= (firstMachine.GetLastEndTime() + element.GetTime()))
                             {
-                                Entity tpc = (Entity)firstMachineTempMaintance[0];
-                                firstMachine.AddElement(tpc);
-                                firstMachineTempMaintance.Remove(tpc);
+                                Entity maint = (Entity)firstMachineTempMaintance[0];
+                                if(maint.GetStartTime() > firstMachine.GetLastEndTime())
+                                {
+                                    Entity idle = new Entity(2, 0, 0, 0, 0, 0, 0);
+                                    idle.SetStartTime(firstMachine.GetLastEndTime() + 1);
+                                    idle.SetEndTime(maint.GetStartTime() - 1);
+                                    idle.SetTime(idle.GetEndTime() - idle.GetStartTime());
+                                    firstMachine.AddElement(idle);
+                                }
+                                firstMachine.AddElement(maint);
+                                firstMachineTempMaintance.Remove(maint);
+                            }
+                            else
+                            {
+                                element.SetStartTime(firstMachine.GetLastEndTime() + 1);
+                                element.SetEndTime(element.GetStartTime() + element.GetTime());
+                                firstMachine.AddElement(element);
+                                firstMachineTasks.Remove(element);
+                                added = true;
+                            }
+                        }
+                        else
+                        {
+                            if(firstMachineTempMaintance.Count != 0 
+                                && getTimeOfNextMaintance(firstMachineTempMaintance) < (element.GetTime() + element.GetReadyTime()))
+                            {
+                                Entity maint = (Entity)firstMachineTempMaintance[0];
+                                if(maint.GetStartTime() > firstMachine.GetLastEndTime())
+                                {
+                                    Entity idle = new Entity(2, 0, 0, 0, 0, 0, 0);
+                                    idle.SetStartTime(firstMachine.GetLastEndTime() + 1);
+                                    idle.SetTime(maint.GetStartTime() - firstMachine.GetLastEndTime());
+                                    idle.SetEndTime(idle.GetStartTime() + idle.GetTime());
+                                    firstMachine.AddElement(idle);
+                                }
+                                element.SetStartTime(firstMachine.GetLastEndTime() + 1);
+                                element.SetEndTime(element.GetStartTime() + element.GetTime());
+                                firstMachine.AddElement(maint);
+                                firstMachineTempMaintance.Remove(maint);
+                            }
+                            else
+                            {
+                                if(element.GetReadyTime() > firstMachine.GetLastEndTime())
+                                {
+                                    Entity idle = new Entity(2, 0, 0, 0, 0, 0, 0);
+                                    idle.SetStartTime(firstMachine.GetLastEndTime() + 1);
+                                    idle.SetTime(element.GetReadyTime() - firstMachine.GetLastEndTime());
+                                    idle.SetEndTime(idle.GetStartTime() + idle.GetTime());
+                                    firstMachine.AddElement(idle);
+                                }
+                                element.SetStartTime(firstMachine.GetLastEndTime() + 1);
+                                element.SetEndTime(element.GetStartTime() + element.GetTime());
+                                firstMachine.AddElement(element);
+                                firstMachineTempMaintance.Remove(element);
+                                added = true;
                             }
                         }
                     }
@@ -273,7 +308,7 @@ namespace okSchedulingProblem
             {
                 while (firstMachineTasks.Count > 0)
                 {
-                    int i = 0;
+                    //int i = 0;
                     Entity element = (Entity)firstMachineTasks[0];
                     if (firstMachine.GetLastEndTime() + element.GetStartTime() + element.GetTime() < getTimeOfNextMaintance(firstMachineTempMaintance) && element.GetReadyTime() > firstMachine.GetLastEndTime())
                     {
@@ -293,9 +328,9 @@ namespace okSchedulingProblem
                     {
                         if (getTimeOfNextMaintance(firstMachineTempMaintance) > 0)
                         {
-                            Entity tms = new Entity(2, (getTimeOfNextMaintance(firstMachineTempMaintance) - firstMachine.GetLastEndTime() - 2), 0, 0, 0, 0, 0);
+                            Entity tms = new Entity(2, (getTimeOfNextMaintance(firstMachineTempMaintance) - firstMachine.GetLastEndTime()), 0, 0, 0, 0, 0);
                             tms.SetStartTime(firstMachine.GetLastEndTime() + 1);
-                            tms.SetEndTime(getTimeOfNextMaintance(firstMachineTempMaintance) - 1);
+                            tms.SetEndTime(getTimeOfNextMaintance(firstMachineTempMaintance));
                             tms.SetTime(tms.GetEndTime() - tms.GetStartTime());
                             firstMachine.AddElement(tms);
                             if (firstMachineTempMaintance.Count > 0)
@@ -350,34 +385,68 @@ namespace okSchedulingProblem
                         pos = 0;
                     }
                     Entity element = (Entity)secondMachineTasks[pos];
-                    if (secondMachine.GetLastEndTime() + element.GetStartTime() + element.GetTime() < getTimeOfNextMaintance(secondMachineTempMaintance) && GetEndTimeOfPair(firstMachineTasks, element.GetOperationID()) > secondMachine.GetLastEndTime())
+                    bool added = false;
+                    while (!added)
                     {
-                        element.SetStartTime(secondMachine.GetLastEndTime() + 1);
-                        element.SetEndTime(secondMachine.GetLastEndTime() + element.GetTime() + 1);
-                        secondMachine.AddElement(element);
-                        secondMachineTasks.Remove(element);
-                    }
-                    else if (secondMachineTempMaintance.Count == 0)
-                    {
-                        element.SetStartTime(secondMachine.GetLastEndTime() + 1);
-                        element.SetEndTime(secondMachine.GetLastEndTime() + element.GetTime() + 1);
-                        secondMachine.AddElement(element);
-                        secondMachineTasks.Remove(element);
-                    }
-                    else
-                    {
-                        if (getTimeOfNextMaintance(secondMachineTempMaintance) > 0)
+                        if (GetEndTimeOfPair(firstMachine.getMachineList(), element.GetOperationID()) < secondMachine.GetLastEndTime())
                         {
-                            Entity tms = new Entity(2, (getTimeOfNextMaintance(secondMachineTempMaintance) - secondMachine.GetLastEndTime() - 2), 0, 0, 0, 0, 0);
-                            tms.SetStartTime(secondMachine.GetLastEndTime() + 1);
-                            tms.SetEndTime(getTimeOfNextMaintance(secondMachineTempMaintance) - 1);
-                            tms.SetTime(tms.GetEndTime() - tms.GetStartTime());
-                            secondMachine.AddElement(tms);
-                            if (secondMachineTempMaintance.Count > 0)
+                            if (secondMachineTempMaintance.Count != 0 && getTimeOfNextMaintance(secondMachineTempMaintance) <= (secondMachine.GetLastEndTime() + element.GetTime()))
                             {
-                                Entity tpc = (Entity)secondMachineTempMaintance[0];
-                                secondMachine.AddElement(tpc);
-                                secondMachineTempMaintance.Remove(tpc);
+                                Entity maint = (Entity)secondMachineTempMaintance[0];
+                                if (maint.GetStartTime() > secondMachine.GetLastEndTime())
+                                {
+                                    Entity idle = new Entity(2, 0, 0, 1, 0, 0, 0);
+                                    idle.SetStartTime(secondMachine.GetLastEndTime() + 1);
+                                    idle.SetEndTime(maint.GetStartTime() - 1);
+                                    idle.SetTime(idle.GetEndTime() - idle.GetStartTime());
+                                    secondMachine.AddElement(idle);
+                                }
+                                secondMachine.AddElement(maint);
+                                secondMachineTempMaintance.Remove(maint);
+                            }
+                            else
+                            {
+                                element.SetStartTime(secondMachine.GetLastEndTime() + 1);
+                                element.SetEndTime(element.GetStartTime() + element.GetTime());
+                                secondMachine.AddElement(element);
+                                secondMachineTasks.Remove(element);
+                                added = true;
+                            }
+                        }
+                        else
+                        {
+                            if (secondMachineTempMaintance.Count != 0
+                                && getTimeOfNextMaintance(secondMachineTempMaintance) < (element.GetTime() + GetEndTimeOfPair(firstMachine.getMachineList(), element.GetOperationID())))
+                            {
+                                Entity maint = (Entity)secondMachineTempMaintance[0];
+                                if (maint.GetStartTime() > secondMachine.GetLastEndTime())
+                                {
+                                    Entity idle = new Entity(2, 0, 0, 1, 0, 0, 0);
+                                    idle.SetStartTime(secondMachine.GetLastEndTime() + 1);
+                                    idle.SetTime(maint.GetStartTime() - secondMachine.GetLastEndTime());
+                                    idle.SetEndTime(idle.GetStartTime() + idle.GetTime());
+                                    secondMachine.AddElement(idle);
+                                }
+                                element.SetStartTime(secondMachine.GetLastEndTime() + 1);
+                                element.SetEndTime(element.GetStartTime() + element.GetTime());
+                                secondMachine.AddElement(maint);
+                                secondMachineTempMaintance.Remove(maint);
+                            }
+                            else
+                            {
+                                if (GetEndTimeOfPair(firstMachine.getMachineList(), element.GetOperationID()) > secondMachine.GetLastEndTime())
+                                {
+                                    Entity idle = new Entity(2, 0, 0, 1, 0, 0, 0);
+                                    idle.SetStartTime(secondMachine.GetLastEndTime() + 1);
+                                    idle.SetTime(GetEndTimeOfPair(firstMachine.getMachineList(), element.GetOperationID()) - secondMachine.GetLastEndTime());
+                                    idle.SetEndTime(idle.GetStartTime() + idle.GetTime());
+                                    secondMachine.AddElement(idle);
+                                }
+                                element.SetStartTime(secondMachine.GetLastEndTime() + 1);
+                                element.SetEndTime(element.GetStartTime() + element.GetTime());
+                                secondMachine.AddElement(element);
+                                secondMachineTempMaintance.Remove(element);
+                                added = true;
                             }
                         }
                     }

@@ -21,7 +21,12 @@ namespace okSchedulingProblem
         public double[,] arrx2;
         ArrayList topValue = new ArrayList();
         ArrayList topValuesTimes = new ArrayList();
-        public TimeSpan endVar = new TimeSpan(0, 0, 30);
+        ArrayList populationHandler;
+        InstationGenerator instanceBest, instanceFirst;
+        RandomGenerator gen;
+        public TimeSpan endVar = new TimeSpan(0, 0, 35);
+        public string setID;
+        ArrayList nonGMO, GMO;
 
         private double Evaporate(double tmp, double param)
         {
@@ -35,8 +40,33 @@ namespace okSchedulingProblem
             return Math.Round(output, 3);
         }
 
+        public void SetData(int size)
+        {
+            topValue = new ArrayList();
+            topValuesTimes = new ArrayList();
+            populationHandler = new ArrayList();
+            gen = new RandomGenerator();
+            instanceFirst = new InstationGenerator();
+            instanceBest = new InstationGenerator();
+            gen.SetNumberOfElements(size);
+            gen.GenereteMaintances();
+            gen.GenereteOperations();
+            gen.SaveInstantion(setID);
+            arr = new double[size, size];
+            arrx2 = new double[size, size];
+            for(int ix = 0; ix < size; ix++)
+            {
+                for(int iy = 0; iy < size; iy++)
+                {
+                    arr[ix, iy] = 0;
+                    arrx2[ix, iy] = 0;
+                }
+            }
+        }
+
         public void Init(int size, int population, double smoothParam, double evarParam)
         {
+            /**
             topValue = new ArrayList();
             topValuesTimes = new ArrayList();
             ArrayList populationHandler = new ArrayList();
@@ -45,13 +75,17 @@ namespace okSchedulingProblem
             InstationGenerator instanceBest = new InstationGenerator();
             gen.SetNumberOfElements(size);
             gen.GenereteMaintances();
-            //gen.PrintMaintances();
             gen.GenereteOperations();
-            //gen.PrintOperations();
+            gen.SaveInstantion(setID);
             arr = new double[size, size];
             arrx2 = new double[size, size];
-            int iter = 0;
-            int bestScore = 1500;
+            **/
+            topValue.Clear();
+            topValuesTimes.Clear();
+            nonGMO = new ArrayList();
+            GMO = new ArrayList();
+            //int iter = 0;
+            int bestScore = 25000;
             MyTimer.Start = DateTime.Now;
             TimeSpan span = new TimeSpan(0, 0, 0);
             //TimeSpan endVar = new TimeSpan(0, 0, 45);
@@ -73,11 +107,15 @@ namespace okSchedulingProblem
                         string mods = "";
                         if (instanceBest.isModified == true)
                         {
-                            mods = "MO!";
+                            GMO.Clear();
+                            mods = "GMO!";
+                            GMO.Add(bestScore);
                         }
                         else
                         {
-                            mods = "NMO!";
+                            nonGMO.Clear();
+                            mods = "NGMO!";
+                            nonGMO.Add(bestScore);
                         }
                         Console.WriteLine(bestScore + " "+ mods);
                         //instanceFirst.PrintMachines();
@@ -92,7 +130,7 @@ namespace okSchedulingProblem
                 //Console.WriteLine("*BEEP* : " + iter);
                 //iter = 0;
                 ArrayList topElements = new ArrayList();
-                for (int s = 0; s < size/10; s++)
+                for (int s = 0; s < 5; s++)
                 {
                     Random rnd = new Random();
                     int rulette = rnd.Next(0, 10);
@@ -125,7 +163,8 @@ namespace okSchedulingProblem
                     {
                         if (arr[ix, iy] > 0)
                         {
-                            if (arr[ix, iy] > evarParam) arr[ix, iy] = Evaporate(arr[ix, iy], evarParam);
+                            if (arr[ix, iy] > 0) arr[ix, iy] = Evaporate(arr[ix, iy], evarParam);
+                            if (arrx2[ix, iy] > 0) arrx2[ix, iy] = Evaporate(arrx2[ix, iy], evarParam);
                         }
                     }
                 }
@@ -175,6 +214,11 @@ namespace okSchedulingProblem
                         {
                             arr[ix, iy] = Smooth(arr[ix, iy], smoothParam);
                         }
+                        if (arrx2[ix, iy] > 0)
+                        {
+                            arrx2[ix, iy] = Smooth(arrx2[ix, iy], smoothParam);
+                        }
+
                     }
                 }
             }
@@ -190,6 +234,7 @@ namespace okSchedulingProblem
             }
             Console.WriteLine(instanceBest.getInstantionScore() + " " + mod);
             SaveScores();
+            SaveOutput(smoothParam, evarParam);
             //instanceBest.PrintMachines();
         }
 
@@ -203,6 +248,101 @@ namespace okSchedulingProblem
                 {
                     sw.WriteLine((int)topValue[i] + "," + topValuesTimes[i] + ";");
                 }
+            }
+        }
+
+        private void SaveOutput(double par, double secPar)
+        {
+            string fileName = string.Format(setID + "-result-"+par+"-"+secPar+".txt");
+            using (StreamWriter sw = new StreamWriter(fileName))
+            {
+                sw.WriteLine("*** " + setID + " ****");
+                sw.WriteLine(GMO[0] + "; " + nonGMO[0]);
+                sw.Write("M1: ");
+                int maint = 0, idle = 0;
+                //1st
+                foreach (Entity el in instanceBest.getFirstMachine())
+                {
+                    if (el.GetTypeOfEntity() == 0) {
+                        sw.Write("o" + el.GetOperationNumber() + "_" + el.GetOperationID() + ", " + el.GetStartTime() + ", " + el.GetTime() +"; ");
+                    }else if(el.GetTypeOfEntity() == 1)
+                    {
+                        sw.Write("maint" + maint++ + "_M1" + ", " + el.GetStartTime() + ", " + el.GetTime() + "; ");
+                    }
+                    else if(el.GetTypeOfEntity() == 2)
+                    {
+                        sw.Write("idle" + idle++ + "_M1" + ", " + el.GetStartTime() + ", " + el.GetTime() + "; ");
+                    }
+                }
+                sw.WriteLine();
+                //2nd
+                sw.Write("M2: ");
+                maint = 0; 
+                idle = 0;
+                foreach (Entity el in instanceBest.getSecondMachine())
+                {
+                    if (el.GetTypeOfEntity() == 0)
+                    {
+                        sw.Write("o" + el.GetOperationNumber() + "_" + el.GetOperationID() + ", " + el.GetStartTime() + ", " + el.GetTime() + "; ");
+                    }
+                    else if (el.GetTypeOfEntity() == 1)
+                    {
+                        sw.Write("maint" + maint++ + "_M2" + ", " + el.GetStartTime() + ", " + el.GetTime() + "; ");
+                    }
+                    else if (el.GetTypeOfEntity() == 2)
+                    {
+                        sw.Write("idle" + idle++ + "_M2" + ", " + el.GetStartTime() + ", " + el.GetTime() + "; ");
+                    }
+                }
+                sw.WriteLine();
+                //M1 amount of maintance; summaric time
+                int summmaricTime = 0, amount = 0;
+                foreach(Entity el in instanceBest.getFirstMachine())
+                {
+                    if(el.GetTypeOfEntity() == 1)
+                    {
+                        amount++;
+                        summmaricTime += el.GetTime();
+                    }
+                }
+                sw.WriteLine(amount + ", " + summmaricTime);
+                //M2 amount of maintance; summaric time
+                summmaricTime = 0;
+                amount = 0;
+                foreach (Entity el in instanceBest.getSecondMachine())
+                {
+                    if (el.GetTypeOfEntity() == 1)
+                    {
+                        amount++;
+                        summmaricTime += el.GetTime();
+                    }
+                }
+                sw.WriteLine(amount + ", " + summmaricTime);
+                //M1 amount of idle; summaric time
+                summmaricTime = 0;
+                amount = 0;
+                foreach (Entity el in instanceBest.getFirstMachine())
+                {
+                    if (el.GetTypeOfEntity() == 2)
+                    {
+                        amount++;
+                        summmaricTime += el.GetTime();
+                    }
+                }
+                sw.WriteLine(amount + ", " + summmaricTime);
+                //M2 amount of idle; summaric time
+                summmaricTime = 0;
+                amount = 0;
+                foreach (Entity el in instanceBest.getSecondMachine())
+                {
+                    if (el.GetTypeOfEntity() == 2)
+                    {
+                        amount++;
+                        summmaricTime += el.GetTime();
+                    }
+                }
+                sw.WriteLine(amount + ", " + summmaricTime);
+                sw.WriteLine("*** EOF ***");
             }
         }
 

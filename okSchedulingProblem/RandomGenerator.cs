@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
+using System.IO;
 
 namespace okSchedulingProblem
 {
@@ -28,7 +29,7 @@ namespace okSchedulingProblem
                 for (int i = 0; i < (size / 5); i++)
                 {
                     int tmpTime = rnd.Next(1, 10);
-                    int startTime = rnd.Next(i*50+1, (i*50 + 50));
+                    int startTime = rnd.Next(i*size+1, (i*size + size));
                     Entity tmpMaintance = new Entity(type, tmpTime, i, tmpMachine, 0, 0, 0);
                     tmpMaintance.SetStartTime(startTime);
                     tmpMaintance.SetEndTime(startTime + tmpTime);
@@ -47,24 +48,25 @@ namespace okSchedulingProblem
             int summaricTimeFirstMachine = 0;
             for(int x = 0; x < size; x++)
             {
-                int tmpTime = rnd.Next(1, 12);
+                int tmpTime = rnd.Next(1, 5);
                 Entity tmpOperation = new Entity(type, tmpTime, 0, 0, x, 0, 0);
                 elements.Add(tmpOperation);
                 summaricTimeFirstMachine += tmpTime;
             }
             for(int x = 0; x < size; x++)
             {
-                int tmpTime = rnd.Next(1, 12);
+                int tmpTime = rnd.Next(1, 5);
                 Entity tmpOperation = new Entity(type, tmpTime, 0, 1, x, 1, 0);
                 elements.Add(tmpOperation);
             }
             int counter = 0;
             foreach(Entity element in elements)
             {
-                if(counter < size/2 && element.GetMachine() == 0)
+                if((counter < (size/2)) && element.GetMachine() == 0)
                 {
                     rdTime = rnd.Next(1, (summaricTimeFirstMachine / 2));
                     element.SetReadyTime(rdTime);
+                    counter++;
                 }
                 else
                 {
@@ -109,6 +111,46 @@ namespace okSchedulingProblem
                 trs.Add(a);
             }
             tmp.CreateNewInstantion(trs, maintances, true, tmr);
+        }
+
+        public void SaveInstantion(string name)
+        { 
+            string fileName = string.Format(name + "-instance.txt");
+            using (StreamWriter sw = new StreamWriter(fileName))
+            {
+                sw.WriteLine("***" + name + "****");
+                sw.WriteLine(size);
+                for (int i = 0; i < size; i++)
+                {
+                    int timeFirst = 0, timeSecond = 0, ReadyTime = 0;
+                    foreach (Entity el in elements)
+                    {
+                        if(el.GetOperationID() == i && el.GetOperationNumber() == 0)
+                        {
+                            timeFirst = el.GetTime();
+                            ReadyTime = el.GetReadyTime();
+                            break;
+                        }
+                    }
+                    foreach (Entity el in elements)
+                    {
+                        if (el.GetOperationID() == i && el.GetOperationNumber() == 1)
+                        {
+                            timeSecond = el.GetTime();
+                            break;
+                        }
+                    }
+                    sw.WriteLine(timeFirst + "; " + timeSecond + "; 0; 1; " + ReadyTime);
+                }
+                int tmp = 0;
+                foreach (Entity el in maintances)
+                {
+                    sw.WriteLine(tmp + "; " + el.GetMachine() + "; " + el.GetTime() + "; " + el.GetStartTime() + ";");
+                    tmp++;
+                }
+                sw.WriteLine("*** EOF ***");
+            }
+            Console.WriteLine("Instantion file created!");
         }
 
     }

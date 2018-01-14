@@ -20,16 +20,19 @@ namespace okSchedulingProblem
             int num = Convert.ToInt32(Console.ReadLine());
             Console.WriteLine("Enter size of population: ");
             int pop = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("Enter set id: ");
+            string setID = Convert.ToString(Console.ReadLine());
             AcoMaster aco = new AcoMaster();
-            for (double firstPar = 6.5; firstPar < 10; firstPar += 0.5)
+            Console.WriteLine(setID);
+            for (int i = 0; i < 5; i++)
             {
-                for (double secondPar = 0.1; secondPar < 1; secondPar += 0.1)
-                {
-                    Console.WriteLine(firstPar + "/" + secondPar);
-                    aco.Init(num, pop, firstPar, secondPar);
+                aco.setID = (setID + "." + i.ToString());
+                aco.SetData(num);
+                for (int c = 0; c< 10; c++) {
+                    aco.Init(num, pop, 7.0, 0.15);
+                    break;
                 }
             }
-            
             Console.ReadLine();
         }
     }
