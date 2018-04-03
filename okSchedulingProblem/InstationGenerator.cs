@@ -109,7 +109,6 @@ namespace okSchedulingProblem
             ArrayList secondMachineTempMaintance = new ArrayList();
             Random r = new Random();
             int randomIndex = 0;
-            //Console.WriteLine("START DIVIDING DATA");
             foreach(Entity element in fullList)
             {
                 if(element.GetMachine() == 0) firstMachineTemp.Add(element);
