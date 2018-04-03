@@ -22,17 +22,19 @@ namespace okSchedulingProblem
             int pop = Convert.ToInt32(Console.ReadLine());
             Console.WriteLine("Enter set id: ");
             string setID = Convert.ToString(Console.ReadLine());
+            Console.WriteLine("Enter end time in seconds: ");
+            int timmy = Convert.ToInt32(Console.ReadLine());
+            //Console.WriteLine("Enter smooth parameter: ");
+            //double smooth = Convert.ToDouble(Console.ReadLine());
+            //Console.WriteLine("Enter evaporate parameter: ");
+            //double eva = Convert.ToDouble(Console.ReadLine());
             AcoMaster aco = new AcoMaster();
+            aco.endVar = new TimeSpan(0, 0, timmy);
             Console.WriteLine(setID);
-            for (int i = 0; i < 5; i++)
-            {
-                aco.setID = (setID + "." + i.ToString());
-                aco.SetData(num);
-                for (int c = 0; c< 10; c++) {
-                    aco.Init(num, pop, 6.5, 0.25);
-                    break;
-                }
-            }
+            aco.setID = (setID);
+            aco.SetData(num);
+            aco.Init(num, pop, 6.5, 0.05);
+            Console.WriteLine("Click any key to continue..");
             Console.ReadLine();
         }
     }

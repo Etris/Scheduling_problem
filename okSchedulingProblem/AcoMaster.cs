@@ -22,9 +22,9 @@ namespace okSchedulingProblem
         ArrayList topValue = new ArrayList();
         ArrayList topValuesTimes = new ArrayList();
         ArrayList populationHandler;
-        InstationGenerator instanceBest, instanceFirst;
+        InstationGenerator instanceBest;
         RandomGenerator gen;
-        public TimeSpan endVar = new TimeSpan(0, 0, 120);
+        public TimeSpan endVar;
         public string setID;
         ArrayList nonGMO, GMO;
 
@@ -34,9 +34,9 @@ namespace okSchedulingProblem
             return Math.Round(output, 3);
         }
 
-        private double Smooth(double tmp, double param)
+        private double Smooth(double min, double tmp, double param)
         {
-            double output = (0.1 * (1 + (Math.Log(param, (tmp / 0.1)))));
+            double output = (min * (1 + (Math.Log(param, (tmp / min)))));
             return Math.Round(output, 3);
         }
 
@@ -46,8 +46,6 @@ namespace okSchedulingProblem
             topValuesTimes = new ArrayList();
             populationHandler = new ArrayList();
             gen = new RandomGenerator();
-            instanceFirst = new InstationGenerator();
-            instanceBest = new InstationGenerator();
             gen.SetNumberOfElements(size);
             gen.GenereteOperations();
             gen.GenereteMaintances();
@@ -68,6 +66,7 @@ namespace okSchedulingProblem
         {
             topValue.Clear();
             topValuesTimes.Clear();
+            InstationGenerator instanceFirst = new InstationGenerator();
             nonGMO = new ArrayList();
             GMO = new ArrayList();
             //int iter = 0;
@@ -89,7 +88,8 @@ namespace okSchedulingProblem
                     if (instanceFirst.getInstantionScore() < bestScore)
                     {
                         bestScore = instanceFirst.getInstantionScore();
-                        instanceBest = (InstationGenerator)instanceFirst.Clone();
+                        instanceBest = null;
+                        instanceBest = instanceFirst;
                         string mods = "";
                         if (instanceBest.isModified == true)
                         {
@@ -142,7 +142,7 @@ namespace okSchedulingProblem
                     topElements.Add((InstationGenerator)populationHandler[positionAtList]);
                     populationHandler.RemoveAt(positionAtList);
                 }
-                //smooth table/evaporate pheromone
+                //evar
                 for (int ix = 0; ix < size; ix++)
                 {
                     for (int iy = 0; iy < size; iy++)
@@ -151,7 +151,7 @@ namespace okSchedulingProblem
                         {
                             if (arr[ix, iy] > 0) arr[ix, iy] = Evaporate(arr[ix, iy], evarParam);
                             if (arrx2[ix, iy] > 0) arrx2[ix, iy] = Evaporate(arrx2[ix, iy], evarParam);
-                        }
+                        }   
                     }
                 }
                 //grants new values
@@ -169,6 +169,7 @@ namespace okSchedulingProblem
                             actual = element.GetOperationID();
                             if (previous == actual) continue;
                             arr[previous, actual] += grants;
+                            arr[previous, actual] = Smooth(0.1, arr[previous, actual], smoothParam);
                         }
                     }
                     grants = (grants - 0.1);
@@ -187,26 +188,12 @@ namespace okSchedulingProblem
                             actual = element.GetOperationID();
                             if (previous == actual) continue;
                             arrx2[previous, actual] += grants;
+                            arrx2[previous, actual] = Smooth(0.1, arrx2[previous, actual], smoothParam);
                         }
                     }
                     grants = (grants - 0.1);
                 }
                 // smooth
-                for (int ix = 0; ix < size; ix++)
-                {
-                    for (int iy = 0; iy < size; iy++)
-                    {
-                        if (arr[ix, iy] > 0)
-                        {
-                            arr[ix, iy] = Smooth(arr[ix, iy], smoothParam);
-                        }
-                        if (arrx2[ix, iy] > 0)
-                        {
-                            arrx2[ix, iy] = Smooth(arrx2[ix, iy], smoothParam);
-                        }
-
-                    }
-                }
             }
             //best one
             string mod = "";
@@ -218,7 +205,7 @@ namespace okSchedulingProblem
             {
                 mod = "GMO Free!";
             }
-            Console.WriteLine(instanceBest.getInstantionScore() + " " + mod);
+            Console.WriteLine("Best score found: " + instanceBest.getInstantionScore() + " " + mod);
             SaveScores();
             SaveOutput(smoothParam, evarParam);
             //instanceBest.PrintMachines();
@@ -243,7 +230,9 @@ namespace okSchedulingProblem
             using (StreamWriter sw = new StreamWriter(fileName))
             {
                 sw.WriteLine("*** " + setID + " ****");
-                sw.WriteLine(GMO[0] + "; " + nonGMO[0]);
+                if (GMO.Count != 0) sw.Write(GMO[0] + "; ");
+                if(nonGMO.Count != 0) sw.Write(nonGMO[0]);
+                sw.WriteLine();
                 sw.Write("M1: ");
                 int maint = 0, idle = 0;
                 //1st

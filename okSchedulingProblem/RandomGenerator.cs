@@ -26,8 +26,9 @@ namespace okSchedulingProblem
             int type = 1;
             int tmpMachine = 0;
             for (int x = 0; x < 2; x++)
-            {   
-                for (int i = 0; i < (size / 5); i++)
+            {
+                int rndSize = size / 5;
+                for (int i = 0; i < rndSize; i++)
                 {
                     int startTime = rnd.Next(i*(maxLen / (size/5))+1 , (i*(maxLen / (size/5)) + (maxLen / (size/5))));
                     int par = 10;
@@ -53,7 +54,7 @@ namespace okSchedulingProblem
             int summaricTimeFirstMachine = 0;
             for(int x = 0; x < size; x++)
             {
-                int tmpTime = rnd.Next(1, 5);
+                int tmpTime = rnd.Next(1, 10);
                 Entity tmpOperation = new Entity(type, tmpTime, 0, 0, x, 0, 0);
                 elements.Add(tmpOperation);
                 summaricTimeFirstMachine += tmpTime;
@@ -61,7 +62,7 @@ namespace okSchedulingProblem
             this.maxLen = summaricTimeFirstMachine;
             for(int x = 0; x < size; x++)
             {
-                int tmpTime = rnd.Next(1, 5);
+                int tmpTime = rnd.Next(1, 10);
                 Entity tmpOperation = new Entity(type, tmpTime, 0, 1, x, 1, 0);
                 elements.Add(tmpOperation);
             }
